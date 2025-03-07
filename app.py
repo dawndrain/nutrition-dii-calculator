@@ -117,15 +117,22 @@ def visualize_dii_components(row, dii_score, component_scores):
     if not chart_data.empty:
         # Create a new column for the y-axis labels with directional arrows
         enhanced_labels = []
-        
+
         for idx, row in chart_data.iterrows():
             # Find the component details
             component_name = row["Nutrient"]
             impact = row["Impact"]
-            
+
             # Find the corresponding detailed component
-            component_details = next((c for c in detailed_components if c["friendly_name"] == component_name), None)
-            
+            component_details = next(
+                (
+                    c
+                    for c in detailed_components
+                    if c["friendly_name"] == component_name
+                ),
+                None,
+            )
+
             if component_details:
                 # Get nutrient's inherent property (anti-inflammatory or pro-inflammatory)
                 if component_details["infl_weight"] < 0:
@@ -137,13 +144,13 @@ def visualize_dii_components(row, dii_score, component_scores):
             else:
                 # Fallback if detailed info not found
                 label = component_name
-                
+
             enhanced_labels.append(label)
-        
+
         # Update the chart data with the enhanced labels
         chart_data_enhanced = chart_data.copy()
         chart_data_enhanced["Enhanced_Nutrient"] = enhanced_labels
-        
+
         # Create an information box to explain the arrows
         st.info("""
         **Understanding the arrows:**
@@ -152,7 +159,7 @@ def visualize_dii_components(row, dii_score, component_scores):
         
         The bar colors show whether your intake is currently increasing (red) or decreasing (green) inflammation.
         """)
-        
+
         # Create the bar chart with enhanced labels
         fig = px.bar(
             chart_data_enhanced,
@@ -176,9 +183,9 @@ def visualize_dii_components(row, dii_score, component_scores):
         )
 
         st.plotly_chart(fig, use_container_width=True)
-        
+
     st.markdown("---")
-    
+
     # Then add the detailed analysis
     rows = []
     for comp in detailed_components:
@@ -255,7 +262,7 @@ def visualize_dii_components(row, dii_score, component_scores):
     - **Impact**: Magnitude of effect on your DII score
     - **% of Total**: How much this nutrient contributes to your total score
     """)
-    
+
     # Display top components with more details (using expanders to save space)
     for i, row in df_display.iterrows():
         if i < 5:
@@ -268,7 +275,9 @@ def visualize_dii_components(row, dii_score, component_scores):
                 with col2:
                     col2a, col2b = st.columns(2)
                     with col2a:
-                        st.write(f"**Your value:** {row['Your Value']} (Avg: {row['Avg Value']})")
+                        st.write(
+                            f"**Your value:** {row['Your Value']} (Avg: {row['Avg Value']})"
+                        )
                         st.write(f"**Effect:** {row['Net Effect']} inflammation")
                     with col2b:
                         st.write(f"**Impact:** {row['Impact']} ({row['% of Total']})")
@@ -279,11 +288,15 @@ def visualize_dii_components(row, dii_score, component_scores):
                 st.markdown("---")
         else:
             # Use expanders for remaining components to save space
-            with st.expander(f"{i+1}. {row['Nutrient']} - Impact: {row['Impact']} ({row['% of Total']})"):
+            with st.expander(
+                f"{i+1}. {row['Nutrient']} - Impact: {row['Impact']} ({row['% of Total']})"
+            ):
                 col1, col2 = st.columns(2)
                 with col1:
                     st.write(f"**Type:** {row['Type']}")
-                    st.write(f"**Your value:** {row['Your Value']} (Avg: {row['Avg Value']})")
+                    st.write(
+                        f"**Your value:** {row['Your Value']} (Avg: {row['Avg Value']})"
+                    )
                 with col2:
                     st.write(f"**Effect:** {row['Net Effect']} inflammation")
                     st.markdown(
@@ -295,54 +308,56 @@ def visualize_dii_components(row, dii_score, component_scores):
 # Define DII parameters as tuples (variable_name, inflammatory_score, global_mean, standard_deviation)
 # Sorted from most pro-inflammatory (positive score) to most anti-inflammatory (negative score)
 DII_PARAMS = [
-    # Most pro-inflammatory
-    ("SATFAT_DII", 0.373, 28.6, 8),  # Saturated fat - most pro-inflammatory
-    ("TRANSFAT_DII", 0.229, 3.15, 3.75),  # Trans fat
-    ("KCAL_DII", 0.18, 2056, 338),  # Energy/calories
-    ("CHOLES_DII", 0.11, 279.4, 51.2),  # Cholesterol
-    ("VITB12_DII", 0.106, 5.15, 2.7),  # Vitamin B12
-    ("CARB_DII", 0.097, 272.2, 40),  # Carbohydrates
-    ("IRON_DII", 0.032, 13.35, 3.71),  # Iron
-    ("PROTEIN_DII", 0.021, 79.4, 13.9),  # Protein
-    # Neutral to mildly anti-inflammatory
-    ("ROSEMARY_DII", -0.013, 1, 15),  # Rosemary
-    ("MUFA_DII", -0.009, 27, 6.1),  # Monounsaturated fat
-    ("RIBOFLAVIN_DII", -0.068, 1.7, 0.79),  # Riboflavin (B2)
-    ("THIAMIN_DII", -0.098, 1.7, 0.66),  # Thiamin (B1)
-    ("THYME_DII", -0.102, 0.33, 0.99),  # Thyme
-    ("CAFFEINE_DII", -0.11, 8.05, 6.67),  # Caffeine
-    ("ANTHOC_DII", -0.131, 18.05, 21.14),  # Anthocyanidins
-    ("PEPPER_DII", -0.131, 10, 7.07),  # Pepper
-    ("EUGENOL_DII", -0.14, 0.01, 0.08),  # Eugenol
-    ("SAFFRON_DII", -0.14, 0.37, 1.78),  # Saffron
-    ("N6FAT_DII", -0.159, 10.8, 7.5),  # Omega-6 fatty acids
-    ("FOLICACID_DII", -0.19, 273, 70.7),  # Folate
-    ("SE_DII", -0.191, 67, 25.1),  # Selenium
-    ("FLAVONONES_DII", -0.25, 11.7, 3.82),  # Flavanones
-    ("NIACIN_DII", -0.246, 25.9, 11.77),  # Niacin (B3)
-    ("ALCOHOL_DII", -0.278, 13.98, 3.72),  # Alcohol
-    ("ONION_DII", -0.301, 35.9, 18.4),  # Onion
-    ("ZN_DII", -0.313, 9.84, 2.19),  # Zinc
-    ("PUFA_DII", -0.337, 13.88, 3.76),  # Polyunsaturated fat
-    ("VITB6_DII", -0.365, 1.47, 0.74),  # Vitamin B6
-    # Moderately anti-inflammatory
-    ("VITA_DII", -0.401, 983.9, 518.6),  # Vitamin A
-    ("GARLIC_DII", -0.412, 4.35, 2.9),  # Garlic
-    ("FLA3OL_DII", -0.415, 95.8, 85.9),  # Flavan-3-ol
-    ("VITE_DII", -0.419, 8.73, 1.49),  # Vitamin E
-    ("VITC_DII", -0.424, 118.2, 43.46),  # Vitamin C
-    ("N3FAT_DII", -0.436, 1.06, 1.06),  # Omega-3 fatty acids
-    ("VITD_DII", -0.446, 6.26, 2.21),  # Vitamin D
-    ("GINGER_DII", -0.453, 59, 63.2),  # Ginger
-    ("FLAVONOLS_DII", -0.467, 17.7, 6.79),  # Flavonols
-    ("MG_DII", -0.484, 310.1, 139.4),  # Magnesium
-    # Strongly anti-inflammatory
-    ("TEA_DII", -0.536, 1.69, 1.53),  # Tea
-    ("BCAROTENE_DII", -0.584, 3718, 1720),  # Beta-carotene
-    ("ISOFLAVONES_DII", -0.593, 1.2, 0.2),  # Isoflavones
-    ("FLAVONES_DII", -0.616, 1.55, 0.07),  # Flavones
-    ("FIBER_DII", -0.663, 18.8, 4.9),  # Fiber
-    ("TURMERIC_DII", -0.785, 533.6, 754.3),  # Turmeric - most anti-inflammatory
+    # most pro-inflammatory
+    ("SATFAT_DII", 0.373, 28.6, 8),
+    ("TOTALFAT_DII", 0.298, 71.4, 19.4),
+    ("TRANSFAT_DII", 0.229, 3.15, 3.75),
+    ("KCAL_DII", 0.18, 2056, 338),
+    ("CHOLES_DII", 0.11, 279.4, 51.2),
+    ("VITB12_DII", 0.106, 5.15, 2.7),
+    ("CARB_DII", 0.097, 272.2, 40),
+    # neutral
+    ("IRON_DII", 0.032, 13.35, 3.71),
+    ("PROTEIN_DII", 0.021, 79.4, 13.9),
+    ("MUFA_DII", -0.009, 27, 6.1),
+    ("ROSEMARY_DII", -0.013, 1, 15),
+    ("RIBOFLAVIN_DII", -0.068, 1.7, 0.79),
+    ("THIAMIN_DII", -0.098, 1.7, 0.66),
+    # mildly anti-inflammatory
+    ("THYME_DII", -0.102, 0.33, 0.99),
+    ("CAFFEINE_DII", -0.11, 8.05, 6.67),
+    ("ANTHOC_DII", -0.131, 18.05, 21.14),
+    ("PEPPER_DII", -0.131, 10, 7.07),
+    ("EUGENOL_DII", -0.14, 0.01, 0.08),
+    ("SAFFRON_DII", -0.14, 0.37, 1.78),
+    ("N6FAT_DII", -0.159, 10.8, 7.5),
+    ("FOLICACID_DII", -0.19, 273, 70.7),
+    ("SE_DII", -0.191, 67, 25.1),
+    ("NIACIN_DII", -0.246, 25.9, 11.77),
+    ("FLAVONONES_DII", -0.25, 11.7, 3.82),
+    ("ALCOHOL_DII", -0.278, 13.98, 3.72),
+    # moderately anti-inflammatory
+    ("ONION_DII", -0.301, 35.9, 18.4),
+    ("ZN_DII", -0.313, 9.84, 2.19),
+    ("PUFA_DII", -0.337, 13.88, 3.76),
+    ("VITB6_DII", -0.365, 1.47, 0.74),
+    ("VITA_DII", -0.401, 983.9, 518.6),
+    ("GARLIC_DII", -0.412, 4.35, 2.9),
+    ("FLA3OL_DII", -0.415, 95.8, 85.9),
+    ("VITE_DII", -0.419, 8.73, 1.49),
+    ("VITC_DII", -0.424, 118.2, 43.46),
+    ("N3FAT_DII", -0.436, 1.06, 1.06),
+    ("VITD_DII", -0.446, 6.26, 2.21),
+    # strongly anti-inflammatory
+    ("GINGER_DII", -0.453, 59, 63.2),
+    ("FLAVONOLS_DII", -0.467, 17.7, 6.79),
+    ("MG_DII", -0.484, 310.1, 139.4),
+    ("TEA_DII", -0.536, 1.69, 1.53),
+    ("BCAROTENE_DII", -0.584, 3718, 1720),
+    ("ISOFLAVONES_DII", -0.593, 1.2, 0.2),
+    ("FLAVONES_DII", -0.616, 1.55, 0.07),
+    ("FIBER_DII", -0.663, 18.8, 4.9),
+    ("TURMERIC_DII", -0.785, 533.6, 754.3),
 ]
 
 
