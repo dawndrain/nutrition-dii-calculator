@@ -3,7 +3,7 @@ import pandas as pd
 from scipy.stats import norm
 import plotly.express as px
 
-from dii_calculation import calculate_dii_score, CRONOMETER_DII_MAPPING, get_dii_param_details
+from dii_calculation import calculate_dii_score, CRONOMETER_DII_MAPPING, get_dii_param_details, MYFITNESSPAL_DII_MAPPING
 
 st.title("Nutrition CSV Analyzer with DII Score")
 
@@ -14,13 +14,7 @@ st.write("See https://github.com/dawndrain/nutrition-dii-calculator/blob/main/RE
 col1, col2 = st.columns([3, 1])
 with col1:
     uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
-with col2:
-    data_source = st.selectbox(
-        "Data Source",
-        ["Cronometer", "MyFitnessPal"],
-        help="Select the source of your CSV file"
-    )
-
+    
 
 def visualize_dii_components(row, dii_score, component_scores, data_source="Cronometer"):
     """
@@ -326,9 +320,18 @@ def visualize_dii_components(row, dii_score, component_scores, data_source="Cron
                     )
 
 
+def determine_data_source(df):
+    if "Energy (kcal)" in df:
+        return "Cronometer"
+    elif "Calories" in df:
+        return "MyFitnessPal"
+    else:
+        raise ValueError(f"Couldn't determine data source for your csv. Are you sure you exported from Cronometer or MyFitnessPal?")
+
 if uploaded_file is not None:
     # Read the CSV file
-    df = pd.read_csv(uploaded_file)
+    df = pd.read_csv(uploaded_file)    
+    data_source = determine_data_source(df)
 
     # Display the dataframe
     st.subheader("Data Preview")
@@ -435,6 +438,7 @@ if uploaded_file is not None:
                             avg_row[col] = df[col].mean()
 
                 # Use the visualization function with avg_components
+                st.write(f"visualize_dii_components 1")
                 visualize_dii_components(avg_row, avg_dii, avg_components, data_source)
 
             # Tabs for individual days
@@ -444,6 +448,7 @@ if uploaded_file is not None:
                     day_dii, day_components = calculate_dii_score(day_data, data_source)
 
                     # Use the visualization function
+                    st.write(f"visualize_dii_components 2")
                     visualize_dii_components(day_data, day_dii, day_components, data_source)
         else:
             # Single day processing
@@ -451,4 +456,5 @@ if uploaded_file is not None:
                 total_dii, component_scores = calculate_dii_score(row, data_source)
 
                 # Use the visualization function
+                st.write(f"visualize_dii_components 3")
                 visualize_dii_components(row, total_dii, component_scores, data_source)
