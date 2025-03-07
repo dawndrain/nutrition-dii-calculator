@@ -4,6 +4,10 @@ A Streamlit web application that allows users to upload nutrition data CSV files
 
 ## Running the App
 
+Go to https://nutrition-dii-calculator.streamlit.app/ to use the web app!
+
+
+If you want to run your own copy of the app locally, then clone this repo and do:
 ```bash
 streamlit run app.py
 ```
