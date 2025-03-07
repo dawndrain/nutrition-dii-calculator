@@ -9,6 +9,8 @@ st.title("Nutrition CSV Analyzer with DII Score")
 
 # File upload section with source selection
 st.subheader("Upload Data")
+st.write("See https://github.com/dawndrain/nutrition-dii-calculator/blob/main/README.md for instructions on exporting data from Cronometer and MyFitnessPal, along with a couple example csv files.")
+
 col1, col2 = st.columns([3, 1])
 with col1:
     uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
