@@ -211,6 +211,6 @@ def calculate_dii_score(df_row, data_source="Cronometer"):
 
 
 def test_calculate_dii_score():
-    df = pd.read_csv('dailysummary.csv')
+    df = pd.read_csv('cronometer_dailysummary.csv')
     assert calculate_dii_score(df.iloc[0])[0] == 0.6766225514700941
     
